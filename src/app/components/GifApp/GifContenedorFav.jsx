@@ -1,5 +1,5 @@
 import React from "react";
-import { addFavorite } from "../../hooks/useGetGifs";
+import { addFavorite, eliminarFavorite } from "../../hooks/useGetGifs";
 import { fire } from "../../services/firebase";
 import GifItem from "./GiftItem";
 
@@ -7,37 +7,30 @@ const GifContenedorFav = () => {
   const [favoritos, setFavoritos] = React.useState([]);
 
   React.useEffect(() => {
+    escucha()
     obtenerDatos();
     // console.log("array");
   }, []);
 
+  const escucha = async () => {
+    const db = fire.firestore();
+    db.collection("favoritos").onSnapshot((snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        obtenerDatos()
+      });
+    });
+  };
   const obtenerDatos = async () => {
     try {
       setFavoritos([]);
       const db = fire.firestore();
       const data = await db.collection("favoritos").get();
-      db.collection("favoritos").onSnapshot((snapshot )=>{
-          snapshot.docChanges().forEach( (change) =>{
-            if (change.type === "added") {
-                console.log("New city: ", change.doc.data());
-                var fav = favoritos;
-                var data = change.doc.data();
-                fav.push({id:data.id ,...data});
-                setFavoritos(fav);
-            }
-            if (change.type === "modified") {
-                console.log("Modified city: ", change.doc.data());
-            }
-            if (change.type === "removed") {
-                console.log("Removed city: ", change.doc.data());
-            }
-          })
-      })
+
       const array = data.docs.map((item) => ({
-        id: item.id,
+        ids: item.id,
         ...item.data(),
       }));
-    //   setFavoritos(array);
+      setFavoritos(array);
       //   console.log(array);
     } catch (error) {
       console.log(error);
@@ -47,8 +40,13 @@ const GifContenedorFav = () => {
   const likess = async (image) => {
     //   console.log(image);
     await addFavorite(image);
-    await obtenerDatos();
+    //await obtenerDatos();
   };
+
+  const eliminar= async (id) =>{
+    // console.log(id);
+    await eliminarFavorite(id)
+}
 
   return (
     <>
@@ -61,7 +59,7 @@ const GifContenedorFav = () => {
         <div className="row">
           {favoritos.map((gif) => (
             <div className="col">
-              <GifItem key={gif.id} url={gif.url} like={likess} />
+              <GifItem key={gif.id} url={gif.url} like={likess} title={gif.ids} remove={true} removeAction={eliminar} />
             </div>
           ))}
         </div>

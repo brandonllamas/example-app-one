@@ -35,9 +35,9 @@ export const useGetGifs = (valorBusqueda) => {
 
 }
 
-export const addFavorite = async (url) => {
+export const addFavorite = async(url) => {
 
-    console.log("valid()");
+    // console.log("valid()");
 
     try {
         const db = fire.firestore();
@@ -52,3 +52,14 @@ export const addFavorite = async (url) => {
         console.log(error);
     }
 };
+
+export const eliminarFavorite = async(id) => {
+    // console.log(id);
+    try {
+        const db = fire.firestore()
+        await db.collection('favoritos').doc(id).delete()
+            // const aux = fire.filter(item => item.id !== id)
+    } catch (error) {
+        console.log(error)
+    }
+}
